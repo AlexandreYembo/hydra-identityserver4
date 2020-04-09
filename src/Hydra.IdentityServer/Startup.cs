@@ -43,9 +43,9 @@ namespace Hydra.IdentityServer
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
             })
-                .AddTestUsers(TestUsers.Users);
+                .AddTestUsers(TestUsers.Users); //The sample UI also comes with an in-memory “user database”
 
-            // in-memory, code config
+            // Register the identity resources
             builder.AddInMemoryIdentityResources(Config.Ids);
             builder.AddInMemoryApiResources(Config.Apis);
             builder.AddInMemoryClients(Config.Clients);
