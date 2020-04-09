@@ -63,4 +63,5 @@ typings/
 .vscode/
 .DS_Store
 
-*/bin/
+bin/
+obj/
