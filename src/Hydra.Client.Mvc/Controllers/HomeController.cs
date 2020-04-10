@@ -23,6 +23,14 @@ namespace Hydra.Client.Mvc.Controllers
             return View();
         }
 
+
+        /// <summary>
+        /// This will clear the local cookie and then redirect to IdentityServer. 
+        /// IdentityServer will clear its cookies and then give the user a link to return back to the MVC application
+        /// </summary>
+        /// <returns></returns>
+        public IActionResult Logout() => SignOut("Cookies", "oidc");
+
         public IActionResult Privacy()
         {
             return View();
