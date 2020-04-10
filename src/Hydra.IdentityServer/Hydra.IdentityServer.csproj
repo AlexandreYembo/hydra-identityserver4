@@ -13,4 +13,8 @@
 
     <!-- <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" /> -->
   </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Hydra.Infrastructure\Hydra.Infrastructure.csproj" />
+  </ItemGroup>
 </Project>
