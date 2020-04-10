@@ -50,6 +50,8 @@ namespace Hydra.IdentityServer
             builder.AddInMemoryApiResources(Config.Apis);
             builder.AddInMemoryClients(Config.Clients);
 
+            services.AddAuthentications();
+
             // or in-memory, json config
             //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));
             //builder.AddInMemoryApiResources(Configuration.GetSection("ApiResources"));
