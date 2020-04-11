@@ -29,6 +29,8 @@ namespace Hydra.Auth.Api
 
             app.UseRouting();
 
+            app.UseCors("js.client");
+
             /*Begin - Authentication - Identity server*/
             app.UseAuthentication(); 
             app.UseAuthorization();

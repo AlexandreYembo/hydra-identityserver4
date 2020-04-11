@@ -55,6 +55,22 @@ namespace Hydra.IdentityServer
                         "hydra-api"
                     },
                     AllowOfflineAccess = true   //enable support for refresh tokens
+                },
+                new Client{ //client registration to IdentityServer for the JavaScript client
+                    ClientId = "js",
+                    ClientName = "Javascript Client",
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequirePkce = true,
+                    RequireClientSecret = false,
+                    RedirectUris = { "http://localhost:5003/callback.html" },
+                    PostLogoutRedirectUris = { "http://localhost:5003/index.html" },
+                    AllowedCorsOrigins = { "http://localhost:5003" },
+                    
+                    AllowedScopes = { 
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "hydra-api"
+                    }
                 }
             };
     }

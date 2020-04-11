@@ -16,6 +16,14 @@ namespace Hydra.Auth.Api.StartupConfig
                 options.RequireHttpsMetadata = false;
                 options.Audience = "hydra-api";     //API resource name defined in Identity service
             });
+
+            services.AddCors(options => {
+                options.AddPolicy("js.client", policy => {
+                    policy.WithOrigins("http://localhost:5003")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+                });
+            });
         }
     }
 }
