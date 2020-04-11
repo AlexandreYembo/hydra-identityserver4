@@ -36,7 +36,9 @@ namespace Hydra.Client.Mvc
                 options.ClientId = "mvc";
                 options.ClientSecret = "secret";
                 options.ResponseType = "code";
-                options.SaveTokens = true;
+                options.SaveTokens = true; //ASP.NET Core will automatically store the resulting access and refresh token in the authentication session
+                options.Scope.Add("hydra-api");
+                options.Scope.Add("offline_access");
             });
         }
 

@@ -51,8 +51,10 @@ namespace Hydra.IdentityServer
 
                     AllowedScopes = new List<string>{
                         IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile
-                    }
+                        IdentityServerConstants.StandardScopes.Profile,
+                        "hydra-api"
+                    },
+                    AllowOfflineAccess = true   //enable support for refresh tokens
                 }
             };
     }
