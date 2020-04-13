@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Brock Allen & Dominick Baier. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
-
+using System.Linq;
+using IdentityServer4.EntityFramework.DbContexts;
+using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -13,9 +17,12 @@ namespace Hydra.IdentityServer
     {
         public IWebHostEnvironment Environment { get; }
 
-        public Startup(IWebHostEnvironment environment)
+        public IConfiguration _configuration;
+
+        public Startup(IWebHostEnvironment environment, IConfiguration configuration)
         {
             Environment = environment;
+            _configuration = configuration;
         }
 
         public void ConfigureServices(IServiceCollection services)
@@ -36,42 +43,12 @@ namespace Hydra.IdentityServer
                 iis.AutomaticAuthentication = false;
             });
 
-            var builder = services.AddIdentityServer(options =>
-            {
-                options.Events.RaiseErrorEvents = true;
-                options.Events.RaiseInformationEvents = true;
-                options.Events.RaiseFailureEvents = true;
-                options.Events.RaiseSuccessEvents = true;
-            })
-                .AddTestUsers(TestUsers.Users); //The sample UI also comes with an in-memory “user database”
+              var builder = services.AddIdentityServer()
+                .AddTestUsers(TestUsers.Users)
+                .AddDatabase(_configuration);
 
-            // Register the identity resources
-            builder.AddInMemoryIdentityResources(Config.Ids);
-            builder.AddInMemoryApiResources(Config.Apis);
-            builder.AddInMemoryClients(Config.Clients);
-
-            services.AddAuthentications();
-
-            // or in-memory, json config
-            //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));
-            //builder.AddInMemoryApiResources(Configuration.GetSection("ApiResources"));
-            //builder.AddInMemoryClients(Configuration.GetSection("clients"));
-
-            // not recommended for production - you need to store your key material somewhere secure
             builder.AddDeveloperSigningCredential();
-
-            //google authentication
-            // services.AddAuthentication()
-            //     .AddGoogle(options =>
-            //     {
-            //         options.SignInScheme = IdentityServerConstants.ExternalCookieAuthenticationScheme;
-
-            //         // register your IdentityServer with Google at https://console.developers.google.com
-            //         // enable the Google+ API
-            //         // set the redirect URI to http://localhost:5000/signin-google
-            //         options.ClientId = "copy client ID from Google here";
-            //         options.ClientSecret = "copy client secret from Google here";
-            //     });
+            services.AddAuthentications();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -90,6 +67,47 @@ namespace Hydra.IdentityServer
             {
                 endpoints.MapDefaultControllerRoute();
             });
+
+            //Only run once you change db schema;
+            //InitializeDatabase(app);
+        }
+
+        private void InitializeDatabase(IApplicationBuilder app)
+        {
+            using(var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
+            {
+                serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
+
+                var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
+                context.Database.Migrate();
+
+                if(!context.Clients.Any())
+                {
+                    foreach (var client in Config.Clients)
+                    {
+                        context.Clients.Add(client.ToEntity());
+                    }
+                    context.SaveChanges();
+                }
+
+                if (!context.IdentityResources.Any()) 
+                {
+                    foreach (var resource in Config.Ids) 
+                    {
+                       context.IdentityResources.Add(resource.ToEntity()); 
+                    }
+                    context.SaveChanges(); 
+                }
+                
+                if (!context.ApiResources.Any()) 
+                {
+                    foreach (var resource in Config.Apis) 
+                    {
+                        context.ApiResources.Add(resource.ToEntity()); 
+                    }
+                    context.SaveChanges(); 
+                }
+            }
         }
     }
 }
