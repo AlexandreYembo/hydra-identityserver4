@@ -1,4 +1,5 @@
 using System.Reflection;
+using Hydra.IdentityServer.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,16 +26,28 @@ namespace Hydra.IdentityServer
             // It will be required also for data base migrations.
             if(provider == "SQL_SERVER"){
                 services.AddConfigurationStore(options => 
-                {
-                    options.ConfigureDbContext = b => b.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(migrationAssembly));
-                })
+                    options.ConfigureDbContext = b => b.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(migrationAssembly))
+                )
                 .AddOperationalStore(options => 
-                {
-                    options.ConfigureDbContext = b => b.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(migrationAssembly));
-                });
+                    options.ConfigureDbContext = b => b.UseSqlServer(connectionString, sql => sql.MigrationsAssembly(migrationAssembly))
+                );
             }
 
             return services;
+        }
+
+        public static IServiceCollection AddDataBase(this IServiceCollection services, IConfiguration configuration)
+        {
+            string connectionString = configuration.GetSection("dbconfig").GetValue<string>("dbConnection");
+            string provider = configuration.GetSection("dbconfig").GetValue<string>("dbprovider");
+
+             if(provider == "SQL_SERVER")
+             {
+                 services.AddDbContext<ApplicationDbContext>(options => 
+                    options.UseSqlServer(connectionString));
+             }
+
+             return services;
         }
     }
 }

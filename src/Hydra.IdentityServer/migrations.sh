@@ -9,4 +9,6 @@ dotnet ef migrations add InitialIdentityServerPersistedGrantDbMigration -c Persi
 echo "processing migration for ConfigurationDbContext"
 dotnet ef migrations add InitialIdentityServerConfigurationDbMigration -c ConfigurationDbContext -o Data/Migrations/IdentityServer/ConfigurationDb
 
+echo "processing migration for ApplicationDbContext"
+dotnet ef migrations add InitialIdentityServerApplicationDbMigration -c ApplicationDbContext -o Data/Migrations/IdentityServer/PersistedGrantDb 
 echo "migration finished!"

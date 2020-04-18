@@ -1,9 +1,10 @@
 using System.Linq;
+using Hydra.IdentityServer.Data;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,9 +40,16 @@ namespace Hydra.IdentityServer
                 iis.AutomaticAuthentication = false;
             });
 
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
+
               var builder = services.AddIdentityServer()
                 .AddTestUsers(TestUsers.Users)
-                .AddDatabase(_configuration);
+                .AddDatabase(_configuration)
+                .AddAspNetIdentity<ApplicationUser>();;
+
+            services.AddDataBase(_configuration);
 
             builder.AddDeveloperSigningCredential();
             services.AddAuthentications(_configuration);
@@ -67,9 +75,17 @@ namespace Hydra.IdentityServer
 
             //if is true the database will be created or updated
             bool initializeDb = _configuration.GetSection("dbconfig").GetValue<bool>("initializeDb");
+            bool runMigration = _configuration.GetSection("dbconfig").GetValue<bool>("runMigration");
+           
+            // if(runMigration){  // experimental phase
+            //   var migration  = new MigrationCore();
+            //   migration.Run();
+            // }
 
-            if(initializeDb)
+            if(initializeDb){
                 InitializeDatabase(app);
+                app.EnsureSeedData();
+            }
         }
 
         private void InitializeDatabase(IApplicationBuilder app)
