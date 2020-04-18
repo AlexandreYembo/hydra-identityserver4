@@ -1,5 +1,6 @@
 using System.Linq;
 using Hydra.IdentityServer.Data;
+using Hydra.IdentityServer.Seeds;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
@@ -46,10 +47,10 @@ namespace Hydra.IdentityServer
 
               var builder = services.AddIdentityServer()
                 .AddTestUsers(TestUsers.Users)
-                .AddDatabase(_configuration)
+                .AddConfigurationDatabase(_configuration)
                 .AddAspNetIdentity<ApplicationUser>();;
 
-            services.AddDataBase(_configuration);
+            services.AddApplicationDataBase(_configuration);
 
             builder.AddDeveloperSigningCredential();
             services.AddAuthentications(_configuration);
@@ -73,57 +74,18 @@ namespace Hydra.IdentityServer
                 endpoints.MapDefaultControllerRoute();
             });
 
-            //if is true the database will be created or updated
-            bool initializeDb = _configuration.GetSection("dbconfig").GetValue<bool>("initializeDb");
-            bool runMigration = _configuration.GetSection("dbconfig").GetValue<bool>("runMigration");
+            //Read configuration Contexts
+            bool seedConfig = _configuration.GetSection("configurationContext").GetValue<bool>("seedDb");
            
-            // if(runMigration){  // experimental phase
-            //   var migration  = new MigrationCore();
-            //   migration.Run();
-            // }
-
-            if(initializeDb){
-                InitializeDatabase(app);
-                app.EnsureSeedData();
-            }
-        }
-
-        private void InitializeDatabase(IApplicationBuilder app)
-        {
-            using(var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
-            {
-                serviceScope.ServiceProvider.GetRequiredService<PersistedGrantDbContext>().Database.Migrate();
-
-                var context = serviceScope.ServiceProvider.GetRequiredService<ConfigurationDbContext>();
-                context.Database.Migrate();
-
-                if(!context.Clients.Any())
-                {
-                    foreach (var client in Config.Clients)
-                    {
-                        context.Clients.Add(client.ToEntity());
-                    }
-                    context.SaveChanges();
-                }
-
-                if (!context.IdentityResources.Any()) 
-                {
-                    foreach (var resource in Config.Ids) 
-                    {
-                       context.IdentityResources.Add(resource.ToEntity()); 
-                    }
-                    context.SaveChanges(); 
-                }
-                
-                if (!context.ApiResources.Any()) 
-                {
-                    foreach (var resource in Config.Apis) 
-                    {
-                        context.ApiResources.Add(resource.ToEntity()); 
-                    }
-                    context.SaveChanges(); 
-                }
-            }
+            //Read application Contexts
+            bool seedApp = _configuration.GetSection("applicationContext").GetValue<bool>("seedDb");
+           
+           
+            if(seedConfig)
+                app.ConfigurationSeedData();
+            
+            if(seedApp)
+                app.AppicationSeedData();
         }
     }
 }

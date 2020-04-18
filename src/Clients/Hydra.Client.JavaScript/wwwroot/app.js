@@ -11,7 +11,7 @@ function log() { document.getElementById('results').innerText = '';
 ///the UserManager class from the oidc-client library to manage the OpenID Connect protocol
 var config = {
     authority: "http://localhost:5000", // Hydra Identity Server
-    client_id: "js",
+    client_id: "7d84d81e-b63d-4642-a357-fef5203dc2d8",
     redirect_uri: "http://localhost:5003/callback.html",
     response_type: "code",
     scope: "openid profile hydra-api",

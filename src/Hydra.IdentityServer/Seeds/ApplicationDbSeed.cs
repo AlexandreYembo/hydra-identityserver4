@@ -13,11 +13,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-namespace Hydra.IdentityServer
+namespace Hydra.IdentityServer.Seeds
 {
-    public static class SeedData
+    public static class ApplicationDbSeed
     {
-        public static void EnsureSeedData(this IApplicationBuilder app)
+        public static void AppicationSeedData(this IApplicationBuilder app)
         {
              using (var scope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
                 {

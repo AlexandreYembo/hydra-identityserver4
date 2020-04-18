@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hydra.IdentityServer.Data.Migrations.IdentityServer.PersistedGrantDb
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200418114820_InitialIdentityServerApplicationDbMigration")]
+    [Migration("20200418130945_InitialIdentityServerApplicationDbMigration")]
     partial class InitialIdentityServerApplicationDbMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
