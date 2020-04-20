@@ -14,15 +14,9 @@ ENV SQL_SOURCE=${SQL_SOURCE}
 ENV SQL_USER=${SQL_USER}
 ENV SQL_PASSWORD=${SQL_PASSWORD}
 
-ENTRYPOINT ["/bin/bash", "variables.sh"]
-
-# copy csproj and restore as distinct layers
-COPY *.csproj ./
+COPY . ${WORKDIR}
+RUN sh ./variables.sh
 RUN dotnet restore
-
-
-# copy everything else and build app
-COPY . ./
 RUN dotnet publish -c Release -o out
 
 # final stage/image
