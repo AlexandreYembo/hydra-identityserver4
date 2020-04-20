@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Hydra.IdentityServer.Data;
 using Hydra.IdentityServer.Seeds;
@@ -25,6 +26,9 @@ namespace Hydra.IdentityServer
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            Console.WriteLine("Connection String");
+            Console.WriteLine(_configuration.GetSection("applicationContext").GetValue<string>("dbConnection"));
+
             services.AddControllersWithViews();
 
             // configures IIS out-of-proc settings (see https://github.com/aspnet/AspNetCore/issues/14882)
@@ -59,10 +63,10 @@ namespace Hydra.IdentityServer
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            // if (env.IsDevelopment())
+            // {
+            //     app.UseDeveloperExceptionPage();
+            // }
 
             app.UseStaticFiles();
 
