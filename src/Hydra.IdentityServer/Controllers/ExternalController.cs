@@ -88,8 +88,7 @@ namespace Hydra.IdentityServer
         [HttpGet]
         public async Task<IActionResult> Callback()
         {
-            // read external identity from the temporary cookie
-            var result = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+            var result = await HttpContext.AuthenticateAsync(IdentityServer4.IdentityServerConstants.ExternalCookieAuthenticationScheme);
             if (result?.Succeeded != true)
             {
                 throw new Exception("External authentication error");
