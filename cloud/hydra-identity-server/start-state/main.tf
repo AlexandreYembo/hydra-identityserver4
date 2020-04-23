@@ -1,5 +1,5 @@
 resource "azurerm_storage_account" "tfstate_sa" {
-    name                     = "tfstatehydraidentity"
+    name                     = var.tf_storage_account_name
     resource_group_name      = azurerm_resource_group.hydra-identity-group.name
     location                 = azurerm_resource_group.hydra-identity-group.location
     account_tier             = "Standard"
@@ -7,12 +7,12 @@ resource "azurerm_storage_account" "tfstate_sa" {
     account_kind             = "BlobStorage"
 
     tags = {
-        environment = "development"
+        environment = var.environment
     }
 }
 
 resource "azurerm_storage_container" "tfstate_container" {
-    name                  = "tfstatecontainer"
+    name                  = var.tf_container_name
     storage_account_name  = azurerm_storage_account.tfstate_sa.name
     container_access_type = "private"
 }

@@ -3,6 +3,6 @@ resource "azurerm_resource_group" "hydra-identity-group" {
     location            = var.AZ_REGION
 
     tags = {
-        environment = "staging"
+        environment = "development"
     }
 }

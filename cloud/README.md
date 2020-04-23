@@ -4,5 +4,4 @@
 
 2 - ```terraform init```
 
-3 - ```terraform apply```
-
+3 - ```terraform apply``` or ```terraform plan```
