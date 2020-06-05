@@ -8,6 +8,23 @@ namespace Hydra.IdentityServer.Seeds
     {
         public static IEnumerable<Client> Get() => 
         new List<Client> {
+            //WORKING FINE
+             // Hydra Admin - Angular
+                new Client {
+                    RequireConsent = false,
+                    ClientId = "a5f46b71-fbf2-4dab-8640-e542c1b8b3bb",
+                    ClientName = "Hydra Admin",
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowedScopes = { "openid", "profile", "email", "hydra-api"},
+                    RedirectUris = {"http://localhost:4200/auth-callback"},
+                    PostLogoutRedirectUris = {"http://localhost:4200/"},
+                    AllowedCorsOrigins = {"http://localhost:4200"},
+                    AllowAccessTokensViaBrowser = true,
+                    AccessTokenLifetime = 3600
+                },
+
+
+            //FOR TESTING
             // no interactive user is present - a service (aka client) wants to communicate with an API (aka scope):
             new Client 
             {
@@ -19,17 +36,17 @@ namespace Hydra.IdentityServer.Seeds
                 AllowedGrantTypes= GrantTypes.ClientCredentials,
                 AllowedScopes = { "hydra-api", "hydra-api2.read_only" }
             },
-            //Client based on SPA
-            // new Client
+           
+            //  new Client
             // { 
-            //     ClientId = "7d84d81e-b63d-4642-a357-fef5203dc2d8",
+            //     ClientId = "a5f46b71-fbf2-4dab-8640-e542c1b8b3bb",
             //     ClientName = "Hydra Administrator",
-            //     ClientUri = "http://localhost:5003",
-            //     AllowedGrantTypes = GrantTypes.Implicit,
+            //     ClientUri = "http://localhost:4200",
+            //     AllowedGrantTypes = GrantTypes.Code,
             //     AllowAccessTokensViaBrowser = true,
-            //     RedirectUris = { "http://localhost:5003/index.html" }, 
-            //     PostLogoutRedirectUris = { "http://localhost:5003/index.html" },
-            //     AllowedCorsOrigins = { "http://localhost:5003" },
+            //     RedirectUris = { "http://localhost:4200/index.html" }, 
+            //     PostLogoutRedirectUris = { "http://localhost:4200/index.html" },
+            //     AllowedCorsOrigins = { "http://localhost:4200" },
             //     AllowedScopes = {
             //         IdentityServerConstants.StandardScopes.OpenId, 
             //         IdentityServerConstants.StandardScopes.Profile, 
@@ -37,9 +54,11 @@ namespace Hydra.IdentityServer.Seeds
             //         "hydra-api", "hydra-api2.read_only"
             //     }
             // },
+
+            
             new Client{ //client registration to IdentityServer for the JavaScript client
                     ClientId = "7d84d81e-b63d-4642-a357-fef5203dc2d8",
-                    ClientName = "Hydra Administrator",
+                    ClientName = "Client JS",
                     AllowedGrantTypes = GrantTypes.Code,
                     RequirePkce = true,
                     RequireClientSecret = false,

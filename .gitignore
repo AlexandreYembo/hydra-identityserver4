@@ -95,3 +95,6 @@ override.tf.json
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
+src/Hydra.IdentityServer/appsettings.json
+src/Hydra.IdentityServer/appsettings.json
+src/poc/Hydra.IdentityServer/Config.cs
