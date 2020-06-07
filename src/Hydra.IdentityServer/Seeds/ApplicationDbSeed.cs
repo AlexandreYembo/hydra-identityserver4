@@ -39,6 +39,7 @@ namespace Hydra.IdentityServer.Seeds
                         }
 
                         result = userMgr.AddClaimsAsync(alice, new Claim[]{
+                        new Claim(JwtClaimTypes.Id, Guid.NewGuid().ToString()),
                         new Claim(JwtClaimTypes.Name, "Alice Smith"),
                         new Claim(JwtClaimTypes.GivenName, "Alice"),
                         new Claim(JwtClaimTypes.FamilyName, "Smith"),
@@ -72,6 +73,7 @@ namespace Hydra.IdentityServer.Seeds
                         }
 
                         result = userMgr.AddClaimsAsync(bob, new Claim[]{
+                        new Claim(JwtClaimTypes.Id, Guid.NewGuid().ToString()),
                         new Claim(JwtClaimTypes.Name, "Bob Smith"),
                         new Claim(JwtClaimTypes.GivenName, "Bob"),
                         new Claim(JwtClaimTypes.FamilyName, "Smith"),
