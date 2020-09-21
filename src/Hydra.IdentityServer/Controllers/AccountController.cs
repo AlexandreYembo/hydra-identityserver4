@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using Hydra.IdentityServer.Models.Account;
 using IdentityModel;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -21,6 +22,7 @@ namespace Hydra.IdentityServer
 {
     [SecurityHeaders]
     [AllowAnonymous]
+    [ApiController]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -199,6 +201,39 @@ namespace Hydra.IdentityServer
             }
 
             return View("LoggedOut", vm);
+        }
+
+        /// <summary>
+        /// Create a new user and authenticate
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IActionResult> SignUp(SignUpInputModel model)
+        {
+            if(!ModelState.IsValid) return BadRequest();
+            
+            var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                EmailConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if(result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, false);
+               
+                //TODO
+               // await _events.RaiseAsync(new SignupSuccessEvent(model.Email, clientId: context?.ClientId));
+                return Ok();
+            }
+            //TODO
+           // await _events.RaiseAsync(new SignupFailEvent(model.Email, result.Errors, clientId:context?.ClientId));
+            return BadRequest();
         }
 
         [HttpGet]
