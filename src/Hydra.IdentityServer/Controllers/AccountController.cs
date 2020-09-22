@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using Hydra.IdentityServer.Helpers;
 using Hydra.IdentityServer.Models.Account;
 using IdentityModel;
 using IdentityServer4.Events;
@@ -22,7 +23,6 @@ namespace Hydra.IdentityServer
 {
     [SecurityHeaders]
     [AllowAnonymous]
-    [ApiController]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -31,6 +31,7 @@ namespace Hydra.IdentityServer
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
+        private readonly IJwtTokenGenerator _tokenGenerator;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
@@ -38,7 +39,8 @@ namespace Hydra.IdentityServer
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
-            IEventService events)
+            IEventService events,
+            IJwtTokenGenerator tokenGenerator)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -46,6 +48,7 @@ namespace Hydra.IdentityServer
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
+            _tokenGenerator = tokenGenerator;
         }
 
         /// <summary>
@@ -204,6 +207,15 @@ namespace Hydra.IdentityServer
         }
 
         /// <summary>
+        /// Entry point into the login workflow
+        /// </summary>
+        [HttpGet]
+        public IActionResult SignUp()
+        {
+            return View(new SignUpInputModel());
+        }
+
+        /// <summary>
         /// Create a new user and authenticate
         /// </summary>
         /// <param name="model"></param>
@@ -211,7 +223,9 @@ namespace Hydra.IdentityServer
         [HttpPost]
         public async Task<IActionResult> SignUp(SignUpInputModel model)
         {
-            if(!ModelState.IsValid) return BadRequest();
+           var token2  = await _tokenGenerator.GenerateToken(model.Email);
+
+            if(!ModelState.IsValid) return View(model);
             
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
             var user = new ApplicationUser
@@ -225,15 +239,15 @@ namespace Hydra.IdentityServer
 
             if(result.Succeeded)
             {
-                await _signInManager.SignInAsync(user, false);
-               
+                 var token  = _tokenGenerator.GenerateToken(user.Email);
                 //TODO
                // await _events.RaiseAsync(new SignupSuccessEvent(model.Email, clientId: context?.ClientId));
-                return Ok();
+                return Redirect("~/");
             }
             //TODO
            // await _events.RaiseAsync(new SignupFailEvent(model.Email, result.Errors, clientId:context?.ClientId));
-            return BadRequest();
+           ViewBag.Errors = result.Errors;
+            return View(model);
         }
 
         [HttpGet]

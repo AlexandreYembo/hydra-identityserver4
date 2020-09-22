@@ -21,23 +21,51 @@ namespace Hydra.IdentityServer
            var appSettings = appSettingsSection.Get<AppSettings>();
            var key = Encoding.ASCII.GetBytes(appSettings.Secret);
 
-            services.AddAuthentication(options =>{
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(bearerOptions =>
-            {
-                bearerOptions.RequireHttpsMetadata = true;
-                bearerOptions.SaveToken = true;
-                bearerOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            // services.AddAuthentication(options =>{
+            //     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            // }).AddJwtBearer(bearerOptions =>
+            // {
+            //     bearerOptions.RequireHttpsMetadata = true;
+            //     bearerOptions.SaveToken = true;
+            //     bearerOptions.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+            //     {
+            //         ValidateIssuerSigningKey = true,
+            //         IssuerSigningKey = new SymmetricSecurityKey(key),
+            //         ValidateIssuer = true,
+            //         ValidateAudience = true,
+            //         ValidAudience = appSettings.Audience,
+            //         ValidIssuer = appSettings.Issuer
+            //     };
+            // });
+
+           services.AddAuthentication("token")
+                // JWT tokens
+                .AddJwtBearer("token", options =>
                 {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidAudience = appSettings.Audience,
-                    ValidIssuer = appSettings.Issuer
-                };
-            });
+                    options.Authority =  "https://localhost:5001";
+                    options.Audience = appSettings.Audience;
+
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(key),
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidAudience = appSettings.Audience,
+                        ValidIssuer = appSettings.Issuer
+                    };
+                });
+
+                // reference tokens
+                // .AddOAuth2Introspection("introspection", options =>
+                // {
+                //     options.Authority = Constants.Authority;
+
+                //     options.ClientId = "resource1";
+                //     options.ClientSecret = "secret";
+                // });
+
 
             //Do not remove this for now
             // services.AddAuthentication("Hydra_cookie")
