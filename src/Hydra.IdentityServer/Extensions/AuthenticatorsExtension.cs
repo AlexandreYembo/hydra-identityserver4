@@ -2,6 +2,7 @@ using System.Text;
 using Hydra.IdentityServer.Extensions;
 using IdentityServer4;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -55,6 +56,9 @@ namespace Hydra.IdentityServer
                         ValidAudience = appSettings.Audience,
                         ValidIssuer = appSettings.Issuer
                     };
+                }).AddCookie(options =>{
+                    options.LoginPath = "/login";
+                    options.AccessDeniedPath = "AccessDenied";
                 });
 
                 // reference tokens
@@ -80,6 +84,12 @@ namespace Hydra.IdentityServer
             //             options.ClientId = googleAuthentication.GetValue<string>("clientId");
             //             options.ClientSecret = googleAuthentication.GetValue<string>("clientSecret");
             //         });
+        }
+
+        public static void UseIdentityConfiguration(this IApplicationBuilder app)
+        {
+            app.UseAuthentication();
+            app.UseAuthorization();
         }
     }
 }

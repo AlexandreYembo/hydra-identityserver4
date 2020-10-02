@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Hydra.IdentityServer.Data;
+using Hydra.IdentityServer.Extensions;
 using Hydra.IdentityServer.Helpers;
 using Hydra.IdentityServer.Seeds;
 using IdentityServer4.EntityFramework.DbContexts;
@@ -19,69 +20,44 @@ namespace Hydra.IdentityServer
     {
         public IConfiguration _configuration;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IHostEnvironment hostEnvironment)
         {
-            _configuration = configuration;
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(hostEnvironment.ContentRootPath)
+                .AddJsonFile("appsettings.json", true, true)
+                .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", true, true)
+                .AddEnvironmentVariables();
+
+            if(hostEnvironment.IsDevelopment())
+            {
+                builder.AddUserSecrets<Startup>();
+            }
+
+            _configuration = builder.Build();
         }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
-
+            services.AddMvcConfiguration();
             // configures IIS out-of-proc settings (see https://github.com/aspnet/AspNetCore/issues/14882)
-            services.Configure<IISOptions>(iis =>
-            {
-                iis.AuthenticationDisplayName = "Windows";
-                iis.AutomaticAuthentication = false;
-            });
 
-            // configures IIS in-proc settings
-            services.Configure<IISServerOptions>(iis =>
-            {
-                iis.AuthenticationDisplayName = "Windows";
-                iis.AutomaticAuthentication = false;
-            });
+            services.IISConfiguration();
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+            services.AddIdentityConfiguration(_configuration);
 
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
-
-              var builder = services.AddIdentityServer()
-                .AddTestUsers(TestUsers.Users)
-                .AddConfigurationDatabase(_configuration)
-                .AddAspNetIdentity<ApplicationUser>();;
-
             services.AddApplicationDataBase(_configuration);
 
-            builder.AddDeveloperSigningCredential();
             services.AddAuthentications(_configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            // if (env.IsDevelopment())
-            // {
-            //     app.UseDeveloperExceptionPage();
-            // }
-
-            app.UseStaticFiles();
-
-            app.UseRouting();
-            app.UseIdentityServer();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapDefaultControllerRoute();
-            });
-
+            app.UseAppConfiguration(env);
+            
             //Read configuration Contexts
             bool seedConfig = _configuration.GetSection("configurationContext").GetValue<bool>("seedDb");
            

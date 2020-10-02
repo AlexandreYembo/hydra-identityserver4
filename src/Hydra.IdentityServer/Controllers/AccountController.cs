@@ -11,12 +11,16 @@ using IdentityServer4.Models;
 using IdentityServer4.Services;
 using IdentityServer4.Stores;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Hydra.IdentityServer
@@ -142,16 +146,43 @@ namespace Hydra.IdentityServer
                         throw new Exception("invalid return URL");
                     }
                 }
-
                 await _events.RaiseAsync(new UserLoginFailureEvent(model.Username, "invalid credentials", clientId:context?.ClientId));
-                ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
+
+                if(result.IsLockedOut){
+                    ModelState.AddModelError(string.Empty, "User is locked out");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, AccountOptions.InvalidCredentialsErrorMessage);
+                }
             }
 
             // something went wrong, show form with error
             var vm = await BuildLoginViewModelAsync(model);
+        
+            // Add to cookie --> TODO: Add in a helper file
+            var jwtToken  = await _tokenGenerator.GenerateToken(model.Username);
+
+            var token = GetFormatedToken(jwtToken.AccessToken);
+            
+            var claims = new List<Claim>();
+            claims.Add(new Claim("JWT", jwtToken.AccessToken));
+            claims.AddRange(token.Claims);
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+            var authProperties = new AuthenticationProperties
+            {
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60),
+                IsPersistent = true
+            };
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+
             return View(vm);
         }
 
+        private static JwtSecurityToken GetFormatedToken(string token) => new JwtSecurityTokenHandler().ReadToken(token) as JwtSecurityToken;
         
         /// <summary>
         /// Show logout page
@@ -185,7 +216,8 @@ namespace Hydra.IdentityServer
             if (User?.Identity.IsAuthenticated == true)
             {
                 // delete local authentication cookie
-                await _signInManager.SignOutAsync();
+                //await _signInManager.SignOutAsync();
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
                 // raise the logout event
                 await _events.RaiseAsync(new UserLogoutSuccessEvent(User.GetSubjectId(), User.GetDisplayName()));
@@ -223,8 +255,6 @@ namespace Hydra.IdentityServer
         [HttpPost]
         public async Task<IActionResult> SignUp(SignUpInputModel model)
         {
-           var token2  = await _tokenGenerator.GenerateToken(model.Email);
-
             if(!ModelState.IsValid) return View(model);
             
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
