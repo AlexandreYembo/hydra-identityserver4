@@ -28,10 +28,10 @@ namespace Hydra.IdentityServer
                 .AddJsonFile($"appsettings.{hostEnvironment.EnvironmentName}.json", true, true)
                 .AddEnvironmentVariables();
 
-            if(hostEnvironment.IsDevelopment())
-            {
-                builder.AddUserSecrets<Startup>();
-            }
+            // if(hostEnvironment.IsDevelopment())
+            // {
+            //     builder.AddUserSecrets<Startup>();
+            // }
 
             _configuration = builder.Build();
         }

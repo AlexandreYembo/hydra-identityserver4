@@ -138,6 +138,25 @@ namespace Hydra.IdentityServer
                     }
                     else if (string.IsNullOrEmpty(model.ReturnUrl))
                     {
+                         // Add to cookie --> TODO: Add in a helper file
+                        var jwtToken  = await _tokenGenerator.GenerateToken(model.Username);
+
+                        var token = GetFormatedToken(jwtToken.AccessToken);
+                        
+                        var claims = new List<Claim>();
+                        claims.Add(new Claim("JWT", jwtToken.AccessToken));
+                        claims.AddRange(token.Claims);
+
+                        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                        var authProperties = new AuthenticationProperties
+                        {
+                            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60),
+                            IsPersistent = true
+                        };
+
+                        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+                     
                         return Redirect("~/");
                     }
                     else
@@ -160,25 +179,6 @@ namespace Hydra.IdentityServer
             // something went wrong, show form with error
             var vm = await BuildLoginViewModelAsync(model);
         
-            // Add to cookie --> TODO: Add in a helper file
-            var jwtToken  = await _tokenGenerator.GenerateToken(model.Username);
-
-            var token = GetFormatedToken(jwtToken.AccessToken);
-            
-            var claims = new List<Claim>();
-            claims.Add(new Claim("JWT", jwtToken.AccessToken));
-            claims.AddRange(token.Claims);
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            var authProperties = new AuthenticationProperties
-            {
-                ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(60),
-                IsPersistent = true
-            };
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
-
             return View(vm);
         }
 

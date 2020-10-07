@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Hydra.IdentityServer.Extensions;
 using Hydra.IdentityServer.Models.Account;
+using Hydra.WebAPI.Core.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -66,10 +67,10 @@ namespace Hydra.IdentityServer.Helpers
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var token = tokenHandler.CreateToken(new SecurityTokenDescriptor
             {
-                Issuer = _appSettings.Issuer,
-                Audience = _appSettings.Audience,
+                Issuer = _appSettings.ValidIssuer,
+                Audience = _appSettings.ValidAudience,
                 Subject = identityClaims,
-                Expires = DateTime.UtcNow.AddHours(_appSettings.TimeExpiration),
+                Expires = DateTime.UtcNow.AddHours(_appSettings.ExpirationTime),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             });
 
@@ -81,7 +82,7 @@ namespace Hydra.IdentityServer.Helpers
             return new UserResponseLogin
             {
                 AccessToken = encodedToken,
-                ExpiresIn = TimeSpan.FromHours(_appSettings.TimeExpiration).TotalSeconds,
+                ExpiresIn = TimeSpan.FromHours(_appSettings.ExpirationTime).TotalSeconds,
                 UserToken = new UserToken
                 {
                     Id = user.Id,

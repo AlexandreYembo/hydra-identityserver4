@@ -1,11 +1,7 @@
-using System.Text;
-using Hydra.IdentityServer.Extensions;
-using IdentityServer4;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Hydra.WebAPI.Core.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Hydra.IdentityServer
 {
@@ -13,14 +9,21 @@ namespace Hydra.IdentityServer
     {
         public static void AddAuthentications(this IServiceCollection services, IConfiguration configuration)
         {
-            var googleAuthentication = configuration.GetSection("googleAuthentication");
-            var cookieExpiration = configuration.GetSection("cookieExpiration");
+            services.AddJwtConfiguration(configuration)
+                    .AddCookie(options =>
+                    {
+                        options.LoginPath = "/login";
+                        options.AccessDeniedPath = "/erro/403";
+                    });
 
-            var appSettingsSection = configuration.GetSection("AppSettings");
-           services.Configure<AppSettings>(appSettingsSection);
+            // var googleAuthentication = configuration.GetSection("googleAuthentication");
+            // var cookieExpiration = configuration.GetSection("cookieExpiration");
 
-           var appSettings = appSettingsSection.Get<AppSettings>();
-           var key = Encoding.ASCII.GetBytes(appSettings.Secret);
+        //     var appSettingsSection = configuration.GetSection("AppSettings");
+        //    services.Configure<AppSettings>(appSettingsSection);
+
+        //    var appSettings = appSettingsSection.Get<AppSettings>();
+        //    var key = Encoding.ASCII.GetBytes(appSettings.Secret);
 
             // services.AddAuthentication(options =>{
             //     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -40,26 +43,26 @@ namespace Hydra.IdentityServer
             //     };
             // });
 
-           services.AddAuthentication("token")
-                // JWT tokens
-                .AddJwtBearer("token", options =>
-                {
-                    options.Authority =  "https://localhost:5001";
-                    options.Audience = appSettings.Audience;
+        //    services.AddAuthentication("token")
+        //         // JWT tokens
+        //         .AddJwtBearer("token", options =>
+        //         {
+        //             options.Authority =  "https://localhost:5001";
+        //             options.Audience = appSettings.Audience;
 
-                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-                    {
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidAudience = appSettings.Audience,
-                        ValidIssuer = appSettings.Issuer
-                    };
-                }).AddCookie(options =>{
-                    options.LoginPath = "/login";
-                    options.AccessDeniedPath = "AccessDenied";
-                });
+        //             options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+        //             {
+        //                 ValidateIssuerSigningKey = true,
+        //                 IssuerSigningKey = new SymmetricSecurityKey(key),
+        //                 ValidateIssuer = true,
+        //                 ValidateAudience = true,
+        //                 ValidAudience = appSettings.Audience,
+        //                 ValidIssuer = appSettings.Issuer
+        //             };
+        //         }).AddCookie(options =>{
+        //             options.LoginPath = "/login";
+        //             options.AccessDeniedPath = "AccessDenied";
+        //         });
 
                 // reference tokens
                 // .AddOAuth2Introspection("introspection", options =>
@@ -88,8 +91,9 @@ namespace Hydra.IdentityServer
 
         public static void UseIdentityConfiguration(this IApplicationBuilder app)
         {
-            app.UseAuthentication();
-            app.UseAuthorization();
+             app.UseAuthConfiguration();
+            // app.UseAuthentication();
+            // app.UseAuthorization();
         }
     }
 }
