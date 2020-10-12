@@ -4,6 +4,7 @@ using Hydra.IdentityServer.Data;
 using Hydra.IdentityServer.Extensions;
 using Hydra.IdentityServer.Helpers;
 using Hydra.IdentityServer.Seeds;
+using Hydra.IdentityServer.Setup;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
 using Microsoft.AspNetCore.Builder;
@@ -51,6 +52,8 @@ namespace Hydra.IdentityServer
             services.AddApplicationDataBase(_configuration);
 
             services.AddAuthentications(_configuration);
+
+            services.AddMessageBusConfiguration(_configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

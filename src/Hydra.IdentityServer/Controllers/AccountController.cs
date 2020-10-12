@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
+using EasyNetQ;
+using Hydra.Core.Integration.Messages;
+using Hydra.Core.MessageBus;
 using Hydra.IdentityServer.Helpers;
-using Hydra.IdentityServer.Models.Account;
 using IdentityModel;
 using IdentityServer4.Events;
 using IdentityServer4.Extensions;
@@ -37,6 +39,8 @@ namespace Hydra.IdentityServer
         private readonly IEventService _events;
         private readonly IJwtTokenGenerator _tokenGenerator;
 
+        private readonly IMessageBus _messageBus;
+
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
@@ -44,7 +48,8 @@ namespace Hydra.IdentityServer
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
             IEventService events,
-            IJwtTokenGenerator tokenGenerator)
+            IJwtTokenGenerator tokenGenerator,
+            IMessageBus messageBus)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -53,6 +58,7 @@ namespace Hydra.IdentityServer
             _schemeProvider = schemeProvider;
             _events = events;
             _tokenGenerator = tokenGenerator;
+            _messageBus = messageBus;
         }
 
         /// <summary>
@@ -255,6 +261,9 @@ namespace Hydra.IdentityServer
         [HttpPost]
         public async Task<IActionResult> SignUp(SignUpInputModel model)
         {
+            try
+            {
+            
             if(!ModelState.IsValid) return View(model);
             
             var context = await _interaction.GetAuthorizationContextAsync(model.ReturnUrl);
@@ -269,15 +278,30 @@ namespace Hydra.IdentityServer
 
             if(result.Succeeded)
             {
-                 var token  = _tokenGenerator.GenerateToken(user.Email);
+                var customerResult = await RegisterUserAsCustomer(model, user);
+
+                if(!customerResult.ValidResult.IsValid)
+                {
+                    await _userManager.DeleteAsync(user);
+                    ViewBag.Errors = customerResult.ValidResult.Errors;
+
+                    return View(model);
+                }
+
+                var token = _tokenGenerator.GenerateToken(user.Email);
                 //TODO
-               // await _events.RaiseAsync(new SignupSuccessEvent(model.Email, clientId: context?.ClientId));
+                // await _events.RaiseAsync(new SignupSuccessEvent(model.Email, clientId: context?.ClientId));
                 return Redirect("~/");
             }
             //TODO
-           // await _events.RaiseAsync(new SignupFailEvent(model.Email, result.Errors, clientId:context?.ClientId));
-           ViewBag.Errors = result.Errors;
-            return View(model);
+            // await _events.RaiseAsync(new SignupFailEvent(model.Email, result.Errors, clientId:context?.ClientId));
+                ViewBag.Errors = result.Errors;
+                return View(model);
+            }
+            catch
+            {
+                return View(model);
+            }
         }
 
         [HttpGet]
@@ -416,8 +440,21 @@ namespace Hydra.IdentityServer
                     }
                 }
             }
-
             return vm;
+        }
+
+         private async Task<ResponseMessage> RegisterUserAsCustomer(SignUpInputModel model, ApplicationUser user)
+        {
+            var userSaved = new UserSaveIntegrationEvent(Guid.Parse(user.Id), model.Name, model.Email, model.IdentityNumber);
+            try
+            {
+                return await _messageBus.RequestAsync<UserSaveIntegrationEvent, ResponseMessage>(userSaved);
+            }
+            catch
+            {
+                await _userManager.DeleteAsync(user);
+                throw;
+            }
         }
     }
 }

@@ -5,7 +5,10 @@ namespace Hydra.IdentityServer
     public class SignUpInputModel
     {
         [Required(ErrorMessage = "Fied {0} is required")]
-        public string Username { get; set; }
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Fied {0} is required")]
+        public string IdentityNumber { get; set; }
 
         [Required(ErrorMessage = "Fied {0} is required")]
         [EmailAddress(ErrorMessage="Field{0} has invalid characteres")]
