@@ -283,7 +283,15 @@ namespace Hydra.IdentityServer
                 if(!customerResult.ValidResult.IsValid)
                 {
                     await _userManager.DeleteAsync(user);
-                    ViewBag.Errors = customerResult.ValidResult.Errors;
+
+                    var errors = new List<IdentityError>();
+
+                    foreach (var error in customerResult.ValidResult.Errors)
+                    {
+                        errors.Add(new IdentityError(){Code  = error.ErrorCode, Description = error.ErrorMessage});
+                    }
+
+                    ViewBag.Errors = errors;
 
                     return View(model);
                 }
